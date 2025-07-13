@@ -1,0 +1,54 @@
+name: "Terraform Reviewer"
+description: "Automatically reviews Terraform changes in Pull Requests using Amazon Bedrock AI"
+author: "Sei I"
+branding:
+  color: yellow
+  icon: book-open
+inputs:
+  aws_region:
+    description: "AWS region for Bedrock"
+    required: true
+    default: "ap-northeast-1"
+  aws_role_arn:
+    description: "AWS IAM role ARN for OIDC authentication"
+    required: true
+  model_id:
+    description: "Bedrock model ID (claude-3-haiku or cohere.command-r-plus)"
+    required: false
+    default: "anthropic.claude-3-haiku-20240307-v1:0"
+  terraform_plan_file:
+    description: "Terraform plan file path"
+    required: false
+    default: "plan.out"
+  github_token:
+    description: "GitHub token for PR operations"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.aws_role_arn }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+
+    - name: Install Python dependencies
+      uses: py-actions/py-dependency-install@v4
+      with:
+        path: "${{ github.action_path }}/requirements.txt"
+
+    - name: Run terraform reviewer
+      run: |
+        cd "${{ github.action_path }}"
+        python -m terraform_reviewer.main "${{ inputs.terraform_plan_file }}"
+      shell: bash
+      env:
+        AWS_REGION: ${{ inputs.aws_region }}
+        MODEL_ID: ${{ inputs.model_id }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}

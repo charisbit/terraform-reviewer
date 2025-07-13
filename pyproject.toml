@@ -1,0 +1,12 @@
+[project]
+name = "terraform-reviewer"
+version = "0.0.0"
+description = "Automatically reviews Terraform changes in Pull Requests using Amazon Bedrock AI"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3",
+    "typer",
+    "PyGithub",
+    "black>=25.1.0",
+]
