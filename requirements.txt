@@ -1,3 +1,4 @@
 boto3
 typer
 PyGithub
+black>=25.1.0

@@ -62,16 +62,22 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
       - name: Terraform Plan
-        run: terraform plan -out=plan.out
+        run: terraform plan -no-color > plan.txt
 
       - name: Review Terraform Changes
-        uses: your-org/terraform-reviewer@v1.0.0
+        uses: seii-saintway/terraform-reviewer@main
         with:
           aws_region: ap-northeast-1
-          aws_role_arn: arn:aws:iam::ACCOUNT-ID:role/GitHubActionsRole
+          aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
           model_id: anthropic.claude-3-haiku-20240307-v1:0
-          terraform_plan_file: plan.out
+          terraform_plan_file: ${{ github.workspace }}/plan.txt
           github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -82,7 +88,7 @@ jobs:
 | `aws_region` | AWS region for Bedrock | ✅ Yes | `ap-northeast-1` |
 | `aws_role_arn` | AWS IAM role ARN for OIDC authentication | ✅ Yes | - |
 | `model_id` | Bedrock model ID (claude-3-haiku or cohere.command-r-plus) | ❌ No | `anthropic.claude-3-haiku-20240307-v1:0` |
-| `terraform_plan_file` | Terraform plan file path | ❌ No | `plan.out` |
+| `terraform_plan_file` | Terraform plan file path (text format) | ❌ No | `plan.txt` |
 | `github_token` | GitHub token for PR operations | ✅ Yes | - |
 
 ## 🔧 Supported Models
@@ -107,7 +113,7 @@ jobs:
 
 **Issue**: "Plan file not found"
 - **Solution**: Ensure the `terraform_plan_file` path is correct and the file exists
-- **Tip**: Use `terraform plan -out=plan.out` to generate the binary plan file
+- **Tip**: Use `terraform plan -no-color > plan.txt` to generate the text plan file
 
 **Issue**: "GitHub token permissions insufficient"
 - **Solution**: Ensure the workflow has `pull-requests: write` permission

@@ -16,7 +16,7 @@ def main():
     if len(sys.argv) > 1:
         plan_file = sys.argv[1]
     else:
-        plan_file = "plan.out"
+        plan_file = "plan.txt"
 
     # Read terraform plan
     try:

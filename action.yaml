@@ -19,7 +19,7 @@ inputs:
   terraform_plan_file:
     description: "Terraform plan file path"
     required: false
-    default: "plan.out"
+    default: "plan.txt"
   github_token:
     description: "GitHub token for PR operations"
     required: true
@@ -46,7 +46,9 @@ runs:
     - name: Run terraform reviewer
       run: |
         cd "${{ github.action_path }}"
-        python -m terraform_reviewer.main "${{ inputs.terraform_plan_file }}"
+        # Copy plan file to current directory
+        cp "${{ inputs.terraform_plan_file }}" .
+        python -m terraform_reviewer.main "$(basename ${{ inputs.terraform_plan_file }})"
       shell: bash
       env:
         AWS_REGION: ${{ inputs.aws_region }}

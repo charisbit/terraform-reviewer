@@ -101,7 +101,7 @@ jobs:
       - name: Terraform Plan
         run: |
           cd test-terraform
-          terraform plan -out=plan.out
+          terraform plan -no-color > plan.txt
 
       - name: Test Terraform Reviewer Action
         uses: ./
@@ -109,5 +109,5 @@ jobs:
           aws_region: ap-northeast-1
           aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
           model_id: anthropic.claude-3-haiku-20240307-v1:0
-          terraform_plan_file: test-terraform/plan.out
+          terraform_plan_file: test-terraform/plan.txt
           github_token: ${{ secrets.GITHUB_TOKEN }}
