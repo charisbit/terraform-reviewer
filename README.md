@@ -96,8 +96,29 @@ jobs:
 - **Claude 3 Haiku**: `anthropic.claude-3-haiku-20240307-v1:0`
 - **Cohere Command R+**: `cohere.command-r-plus-v1:0`
 
+## 🧪 Local Testing
 
+To test the Terraform Reviewer locally, set the following environment variables:
 
+```bash
+export GITHUB_TOKEN=your_github_token
+export GITHUB_REPOSITORY=owner/repo-name
+export GITHUB_EVENT_NAME=pull_request
+export GITHUB_EVENT_PATH=/path/to/event.json
+export AWS_REGION=ap-northeast-1
+export MODEL_ID=anthropic.claude-3-haiku-20240307-v1:0
+export AWS_ACCESS_KEY_ID=your_aws_access_key
+export AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+export AWS_SESSION_TOKEN=your_session_token  # Optional, for temporary credentials
+```
+
+Then run the main script:
+
+```bash
+python -m terraform_reviewer.main
+```
+
+**Note**: Ensure you have a valid Terraform plan file (`plan.txt`) in your working directory before running the local test.
 
 ## 🔧 Troubleshooting
 
