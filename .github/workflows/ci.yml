@@ -83,24 +83,3 @@ jobs:
         run: |
           pip install bandit
           bandit -r terraform_reviewer/
-
-  deploy:
-    needs: [test, security]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      id-token: write
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Build package
-        run: |
-          pip install build
-          python -m build
-      
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
