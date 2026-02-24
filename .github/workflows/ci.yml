@@ -1,0 +1,106 @@
+name: Terraform Reviewer CI
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'terraform_reviewer/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'requirements.txt'
+  pull_request:
+    paths:
+      - 'terraform_reviewer/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'requirements.txt'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" pytest pytest-cov
+      
+      - name: Run unit tests
+        run: |
+          pytest tests/ -v --tb=short --cov=terraform_reviewer --cov-report=term-missing --cov-report=html
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+      
+      - name: Check code quality
+        run: |
+          pip install black
+          black --check terraform_reviewer/ tests/
+      
+      - name: Lint with ruff
+        run: |
+          pip install ruff
+          ruff check terraform_reviewer/ tests/
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install pip-audit
+        run: pip install pip-audit
+      
+      - name: Audit dependencies
+        run: pip-audit
+      
+      - name: Run Bandit security scan
+        run: |
+          pip install bandit
+          bandit -r terraform_reviewer/
+
+  deploy:
+    needs: [test, security]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Build package
+        run: |
+          pip install build
+          python -m build
+      
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
